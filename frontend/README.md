@@ -71,3 +71,46 @@ export default defineConfig([
   },
 ])
 ```
+
+
+
+## Setup Guide & Core Tools
+
+> Implementation of **HU-FE-003**.
+
+### 1. Environment Variables & Configuration
+Implemented a secure and strongly-typed environment management system.
+
+* **Local Files:** You must create your own `.env.development` file based on the provided `.env.example`.
+* **Validation:** The `src/config/env.ts` module automatically validates that all strictly required variables (such as `VITE_API_URL`) are present at application startup.
+* **Typing:** Environment variables feature full autocomplete support thanks to the interface defined in `src/vite-env.d.ts`.
+
+---
+
+### 2. Global State Management (Zustand 5)
+Used for handling shared state across components without the need for *prop drilling*.
+
+* **Location:** All global stores are located inside `src/shared/store/`.
+* **Example Setup:** A base `useUIStore.ts` is included to control UI elements (e.g., toggling the Sidebar state).
+* **Debugging:** Redux DevTools middleware is configured to be active *only* in development mode or when the `DEBUG` environment flag is enabled.
+
+---
+
+### 3. Data Synchronization (TanStack Query 5)
+
+* **Provider:** The entire application is wrapped with the `QueryClientProvider` at the entry point in `src/main.tsx`.
+* **Base Configuration:**
+  * `staleTime`: **5 minutes** (prevents unnecessary repetitive requests to the server).
+  * `retry`: **1 automatic retry** in case of network failures.
+  * `refetchOnWindowFocus`: **Disabled** by default to optimize performance and network resources.
+
+```typescript
+// Default caching behavior applied globally:
+defaultOptions: {
+  queries: {
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  },
+}
+```

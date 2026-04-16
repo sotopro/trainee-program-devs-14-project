@@ -3,9 +3,15 @@ import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import heroImg from './assets/hero.png'
 import './App.css'
+// 1. Importamos tu nuevo store global
+import { useUIStore } from './shared/store/useUIStore'
 
 function App() {
   const [count, setCount] = useState(0)
+  
+  // 2. Extraemos el estado y la acción de Zustand
+  const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
+  const toggleSidebar = useUIStore((state) => state.toggleSidebar)
 
   return (
     <>
@@ -21,12 +27,27 @@ function App() {
             Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
           </p>
         </div>
+        
+        {/* Estado Local (React useState) original */}
         <button
           className="counter"
           onClick={() => setCount((count) => count + 1)}
         >
           Count is {count}
         </button>
+
+        {/* Estado Global (Zustand)*/}
+        <div style={{ marginTop: '1rem', padding: '1rem', background: '#1a1a1a', borderRadius: '8px', border: '1px solid #333' }}>
+          <p style={{ marginBottom: '10px' }}>
+            Zustand Sidebar is: <strong>{isSidebarOpen ? 'OPEN 🟢' : 'CLOSED 🔴'}</strong>
+          </p>
+          <button
+            className="counter"
+            onClick={toggleSidebar}
+          >
+            Toggle Global State
+          </button>
+        </div>
       </section>
 
       <div className="ticks"></div>

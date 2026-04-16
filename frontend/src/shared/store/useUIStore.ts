@@ -12,14 +12,13 @@ export const useUIStore = create<UIState>()(
   devtools(
     (set) => ({
       isSidebarOpen: true,
-      toggleSidebar: () => 
+      toggleSidebar: () =>
         set((state) => ({ isSidebarOpen: !state.isSidebarOpen }), false, 'ui/toggleSidebar'),
-      setSidebarOpen: (isOpen) => 
-        set({ isSidebarOpen: isOpen }, false, 'ui/setSidebarOpen'),
+      setSidebarOpen: (isOpen) => set({ isSidebarOpen: isOpen }, false, 'ui/setSidebarOpen'),
     }),
     {
       name: 'UIStore',
       enabled: env.APP_ENV === 'development' || env.DEBUG,
-    }
-  )
+    },
+  ),
 );

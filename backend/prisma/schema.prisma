@@ -1,0 +1,227 @@
+// LearnPath database schema (HU-BE-002)
+// Prisma 6 + Prisma Postgres
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// Enums
+// ============================================================================
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CourseDifficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum LessonType {
+  TEXT
+  VIDEO
+  CODE
+  QUIZ
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+// ============================================================================
+// Core domain models
+// ============================================================================
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  authoredCourses Course[]       @relation("CourseAuthor")
+  enrollments     Enrollment[]
+  learningPaths   LearningPath[]
+  progress        Progress[]
+  quizAttempts    QuizAttempt[]
+}
+
+model Course {
+  id          String           @id @default(cuid())
+  title       String
+  description String
+  category    String
+  difficulty  CourseDifficulty
+  coverImage  String?
+  authorId    String
+  status      CourseStatus     @default(DRAFT)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  author      User         @relation("CourseAuthor", fields: [authorId], references: [id])
+  modules     Module[]
+  enrollments Enrollment[]
+  progress    Progress[]
+
+  @@index([authorId])
+  @@index([status])
+}
+
+model Module {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  order       Int
+  courseId    String
+  createdAt   DateTime @default(now())
+
+  course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons Lesson[]
+
+  @@unique([courseId, order])
+  @@index([courseId])
+}
+
+model Lesson {
+  id        String     @id @default(cuid())
+  title     String
+  content   String
+  type      LessonType @default(TEXT)
+  duration  Int // duracion estimada en minutos
+  order     Int
+  moduleId  String
+  createdAt DateTime   @default(now())
+
+  module            Module             @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  quizzes           Quiz[]
+  progress          Progress[]
+  learningPathItems LearningPathItem[]
+
+  @@unique([moduleId, order])
+  @@index([moduleId])
+}
+
+model Enrollment {
+  id         String           @id @default(cuid())
+  userId     String
+  courseId   String
+  status     EnrollmentStatus @default(ACTIVE)
+  enrolledAt DateTime         @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+}
+
+// ============================================================================
+// Learning paths (with Git-style forking)
+// ============================================================================
+
+model LearningPath {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  userId         String
+  isForked       Boolean  @default(false)
+  originalPathId String?
+  createdAt      DateTime @default(now())
+
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originalPath LearningPath?      @relation("PathForks", fields: [originalPathId], references: [id])
+  forks        LearningPath[]     @relation("PathForks")
+  items        LearningPathItem[]
+
+  @@index([userId])
+  @@index([originalPathId])
+}
+
+model LearningPathItem {
+  id          String  @id @default(cuid())
+  pathId      String
+  lessonId    String
+  order       Int
+  isCompleted Boolean @default(false)
+
+  path   LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+  lesson Lesson       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([pathId, order])
+  @@index([pathId])
+  @@index([lessonId])
+}
+
+// ============================================================================
+// Progress tracking
+// ============================================================================
+
+model Progress {
+  id          String    @id @default(cuid())
+  userId      String
+  lessonId    String
+  courseId    String
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  timeSpent   Int       @default(0) // segundos acumulados
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+  @@index([lessonId])
+  @@index([courseId])
+}
+
+// ============================================================================
+// Quizzes
+// ============================================================================
+
+model Quiz {
+  id        String   @id @default(cuid())
+  lessonId  String
+  title     String
+  questions Json // [{ id, text, options: [], correctIndex }]
+  createdAt DateTime @default(now())
+
+  lesson   Lesson        @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  attempts QuizAttempt[]
+
+  @@index([lessonId])
+}
+
+model QuizAttempt {
+  id          String   @id @default(cuid())
+  quizId      String
+  userId      String
+  answers     Json // [{ questionId, selectedIndex }]
+  score       Float
+  attemptedAt DateTime @default(now())
+
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([quizId])
+  @@index([userId])
+}

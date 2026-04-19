@@ -114,3 +114,25 @@ defaultOptions: {
   },
 }
 ```
+
+---
+
+### 4. Project Architecture & Folder Structure
+
+The project utilizes a feature-based vertical slices architecture to ensure scalability, maintainability, and clear separation of concerns. 
+
+* **Directory Organization:**
+  * `src/app/`: Contains the application entry points and routing configuration.
+  * `src/config/`: Manages environment configurations and application-wide constants.
+  * `src/features/`: Contains domain-specific vertical slices (e.g., `auth`, `courses`, `learning-paths`). Each feature encapsulates its own internal components, hooks, services, types, and utilities to promote cohesion and reduce coupling.
+  * `src/pages/`: Contains top-level page components that connect to the router.
+  * `src/shared/`: Houses reusable elements, including UI components, layouts, global hooks, and providers, intended for cross-feature use.
+
+* **Strict Import Rule:** A feature NEVER imports directly from another feature. Any code, component, or state that requires sharing between features must be extracted and placed within the `src/shared/` directory or global state store.
+
+* **Path Aliases Resolution:** To maintain clean import statements, module resolution in TypeScript and Vite is configured with the following absolute path aliases:
+  * `@/app/*` resolves to `src/app/*`
+  * `@/config/*` resolves to `src/config/*`
+  * `@/features/*` resolves to `src/features/*`
+  * `@/pages/*` resolves to `src/pages/*`
+  * `@/shared/*` resolves to `src/shared/*`

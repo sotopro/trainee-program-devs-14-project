@@ -28,7 +28,9 @@
     "@prisma/client": "^6.19.3",
     "bcrypt": "^6.0.0",
     "express": "^5.2.1",
-    "prisma": "^6.19.3"
+    "openai": "^6.34.0",
+    "prisma": "^6.19.3",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

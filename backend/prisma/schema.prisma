@@ -200,15 +200,13 @@ model Progress {
 
 model Quiz {
   id        String   @id @default(cuid())
-  lessonId  String
+  lessonId  String   @unique
   title     String
   questions Json // [{ id, text, options: [], correctIndex }]
   createdAt DateTime @default(now())
 
   lesson   Lesson        @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   attempts QuizAttempt[]
-
-  @@index([lessonId])
 }
 
 model QuizAttempt {
@@ -224,4 +222,34 @@ model QuizAttempt {
 
   @@index([quizId])
   @@index([userId])
+}
+
+// ============================================================================
+// AI / OpenAI
+// ============================================================================
+
+model AIConversation {
+  id           String   @id @default(cuid())
+  userId       String
+  type         String   // "COURSE_GENERATION"
+  messages     Json     // Array de { role: "user"|"assistant", content: string }
+  lastProposal Json?
+  status       String   @default("ACTIVE") // "ACTIVE", "CONFIRMED", "CANCELLED"
+  courseId     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Recommendation {
+  id        String   @id @default(cuid())
+  lessonId  String
+  type      String   // "QUESTION", "TOPIC", "RESOURCE"
+  content   String
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  @@index([lessonId])
 }

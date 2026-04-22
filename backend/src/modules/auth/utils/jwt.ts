@@ -1,6 +1,11 @@
 import type { Role } from '@prisma/client';
 import jwt from 'jsonwebtoken';
-import { JWT_REFRESH_SECRET, JWT_SECRET } from '../../../config/auth.js';
+import {
+  JWT_ACCESS_EXPIRES_IN,
+  JWT_REFRESH_EXPIRES_IN,
+  JWT_REFRESH_SECRET,
+  JWT_SECRET,
+} from '../../../config/auth.js';
 
 export type AuthTokenPayload = {
   userId: string;
@@ -16,7 +21,7 @@ export const generateAccessToken = (user: AuthTokenPayload): string => {
       role: user.role,
     },
     JWT_SECRET,
-    { expiresIn: '15m' },
+    { expiresIn: JWT_ACCESS_EXPIRES_IN },
   );
 };
 
@@ -28,7 +33,7 @@ export const generateRefreshToken = (user: AuthTokenPayload): string => {
       role: user.role,
     },
     JWT_REFRESH_SECRET,
-    { expiresIn: '7d' },
+    { expiresIn: JWT_REFRESH_EXPIRES_IN },
   );
 };
 

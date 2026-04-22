@@ -7,9 +7,10 @@ export const validateMiddleware = (schema: ZodTypeAny): RequestHandler => {
 
     if (!result.success) {
       res.status(400).json({
-        error: 'Bad Request',
-        message: 'Datos inválidos',
-        errors: result.error.flatten().fieldErrors,
+        error: 'Validation Error',
+        message: 'Los datos enviados no son validos',
+        statusCode: 400,
+        fieldErrors: result.error.flatten().fieldErrors,
       });
       return;
     }

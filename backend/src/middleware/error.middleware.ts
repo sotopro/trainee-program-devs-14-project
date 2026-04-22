@@ -7,15 +7,22 @@ export const errorHandler = (
   res: Response,
   _next: NextFunction,
 ): void => {
-  console.error('[Error]', err);
+  const isProduction = process.env.NODE_ENV === 'production';
 
   if (err instanceof AppError) {
-    res.status(err.statusCode).json({ error: err.error, message: err.message });
+    res.status(err.statusCode).json({
+      error: err.error,
+      message: err.message,
+      statusCode: err.statusCode,
+    });
     return;
   }
 
+  console.error('[Unhandled Error]', err);
+
   res.status(500).json({
     error: 'Internal Server Error',
-    message: 'Internal server error',
+    message: isProduction ? 'Internal server error' : err.message,
+    statusCode: 500,
   });
 };

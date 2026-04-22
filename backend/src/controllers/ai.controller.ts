@@ -6,31 +6,20 @@ import { recommendationService } from '../services/recommendation.service.js';
 import { pathExpansionService } from '../services/path-expansion.service.js';
 import { AppError } from '../utils/app-error.js';
 
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    role: string;
-  };
-}
-
 export const generateCourse = async (
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    if (req.user?.role !== 'ADMIN') {
-      throw new AppError(403, 'Solo administradores pueden generar cursos');
-    }
-
     const { topic, level, targetAudience } = req.body;
 
     if (!topic) {
-      throw new AppError(400, 'El campo topic es requerido');
+      throw new AppError(400, 'El campo topic es requerido', 'Bad Request');
     }
 
     const result = await courseGenerationService.generateCourse(
-      req.user.id,
+      req.user!.userId,
       topic,
       level || 'intermedio',
       targetAudience || 'Desarrolladores generales',
@@ -43,24 +32,20 @@ export const generateCourse = async (
 };
 
 export const chat = async (
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    if (req.user?.role !== 'ADMIN') {
-      throw new AppError(403, 'Solo administradores pueden chatear con la IA');
-    }
-
     const { conversationId } = req.params as { conversationId: string };
     const { message } = req.body;
 
     if (!message) {
-      throw new AppError(400, 'El campo message es requerido');
+      throw new AppError(400, 'El campo message es requerido', 'Bad Request');
     }
 
     const result = await courseGenerationService.sendMessage(
-      req.user.id,
+      req.user!.userId,
       conversationId,
       message,
     );
@@ -72,19 +57,15 @@ export const chat = async (
 };
 
 export const confirmCourse = async (
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    if (req.user?.role !== 'ADMIN') {
-      throw new AppError(403, 'Solo administradores pueden confirmar cursos');
-    }
-
     const { conversationId } = req.params as { conversationId: string };
 
     const result = await courseGenerationService.confirmCourse(
-      req.user.id,
+      req.user!.userId,
       conversationId,
     );
 
@@ -95,15 +76,11 @@ export const confirmCourse = async (
 };
 
 export const generateContent = async (
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    if (req.user?.role !== 'ADMIN') {
-      throw new AppError(403, 'Solo administradores pueden generar contenido');
-    }
-
     const { lessonId } = req.params as { lessonId: string };
     const { overwrite } = req.body;
 
@@ -119,15 +96,11 @@ export const generateContent = async (
 };
 
 export const generateQuiz = async (
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    if (req.user?.role !== 'ADMIN') {
-      throw new AppError(403, 'Solo administradores pueden generar quizzes');
-    }
-
     const { lessonId } = req.params as { lessonId: string };
 
     const result = await quizGenerationService.generateQuiz(lessonId);
@@ -139,15 +112,11 @@ export const generateQuiz = async (
 };
 
 export const getRecommendations = async (
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    if (!req.user) {
-      throw new AppError(401, 'Autenticacion requerida');
-    }
-
     const { lessonId } = req.params as { lessonId: string };
 
     const result = await recommendationService.getRecommendations(lessonId);
@@ -159,24 +128,20 @@ export const getRecommendations = async (
 };
 
 export const expandPath = async (
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    if (!req.user) {
-      throw new AppError(401, 'Autenticacion requerida');
-    }
-
     const { pathId } = req.params as { pathId: string };
     const { recommendationId } = req.body;
 
     if (!recommendationId) {
-      throw new AppError(400, 'El campo recommendationId es requerido');
+      throw new AppError(400, 'El campo recommendationId es requerido', 'Bad Request');
     }
 
     const result = await pathExpansionService.expandPath(
-      req.user.id,
+      req.user!.userId,
       pathId,
       recommendationId,
     );

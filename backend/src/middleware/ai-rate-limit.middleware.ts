@@ -1,12 +1,14 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { RateLimitEntry } from '../types/ai.types.js';
+import { AppError, UnauthorizedError } from '../utils/app-error.js';
 
 const requestCounts = new Map<string, RateLimitEntry>();
 
-export function aiRateLimit(req: Request, res: Response, next: NextFunction): void {
-  const userId = (req as Request & { user?: { id: string } }).user?.id;
+export function aiRateLimit(req: Request, _res: Response, next: NextFunction): void {
+  const userId = req.user?.userId;
+
   if (!userId) {
-    res.status(401).json({ message: 'Unauthorized' });
+    next(new UnauthorizedError('Token de acceso requerido'));
     return;
   }
 
@@ -15,18 +17,17 @@ export function aiRateLimit(req: Request, res: Response, next: NextFunction): vo
 
   if (!entry || now > entry.resetAt) {
     requestCounts.set(userId, { count: 1, resetAt: now + 60000 });
-    return next();
+    next();
+    return;
   }
 
   if (entry.count >= 10) {
-    res.status(429).json({
-      message: 'Limite de peticiones de IA excedido. Intenta en un minuto.',
-    });
+    next(new AppError(429, 'Limite de peticiones de IA excedido. Intenta en un minuto.', 'Too Many Requests'));
     return;
   }
 
   entry.count++;
-  return next();
+  next();
 }
 
 export function clearRateLimitForUser(userId: string): void {

@@ -1,5 +1,1 @@
-import type { InputHTMLAttributes } from 'react';
-
-export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
-  return <input className="ui-input" {...props} />;
-}
+﻿export { Input } from '@/components/ui/input';

@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+﻿import { useNavigate } from 'react-router-dom';
 import { LoginForm, type LoginResponse } from '@/features/auth';
 
 export function LoginPage() {
@@ -13,7 +13,7 @@ export function LoginPage() {
       <section className="auth-card" aria-labelledby="login-title">
         <div className="auth-card__header">
           <p className="auth-card__eyebrow">LearnPath</p>
-          <h1 id="login-title">Iniciar sesión</h1>
+          <h1 id="login-title">Iniciar sesion</h1>
           <p>Entra con tus credenciales para continuar tu ruta de aprendizaje.</p>
         </div>
         <LoginForm onLoginSuccess={handleLoginSuccess} />

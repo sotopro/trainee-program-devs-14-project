@@ -38,10 +38,10 @@ api.interceptors.response.use(
   (response) => response,
   (error: AxiosError<ApiErrorPayload>) => {
     if (!error.response) {
-      return Promise.reject(new ApiError('No pudimos conectar con el servidor. Intenté nuevamente.'));
+      return Promise.reject(new ApiError('No pudimos conectar con el servidor. Intenta nuevamente.'));
     }
 
-    const message = error.response.data?.message ?? 'Ocurrió un error inesperado.';
+    const message = error.response.data?.message ?? 'Ocurrio un error inesperado.';
     return Promise.reject(new ApiError(message, error.response.status));
   },
 );

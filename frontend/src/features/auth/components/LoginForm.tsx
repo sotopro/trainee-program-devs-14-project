@@ -1,9 +1,10 @@
-import { zodResolver } from '@hookform/resolvers/zod';
+﻿import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
-import { Button, Input } from '@/shared/components/ui';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { ApiError } from '@/shared/lib';
 import { loginSchema, type LoginFormValues } from '../schemas/loginSchema';
 import { authService } from '../services/authService';
@@ -14,7 +15,7 @@ type LoginFormProps = {
   onLoginSuccess: (response: LoginResponse) => void;
 };
 
-const DEFAULT_LOGIN_ERROR = 'No pudimos iniciar sesión. Revisa tus credenciales e intenta nuevamente.';
+const DEFAULT_LOGIN_ERROR = 'No pudimos iniciar sesion. Revisa tus credenciales e intenta nuevamente.';
 
 export function LoginForm({ onLoginSuccess }: LoginFormProps) {
   const storeLogin = useAuthStore((state) => state.login);
@@ -88,7 +89,7 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
       </div>
 
       <div className="login-form__field">
-        <label htmlFor="password">Contrase�a</label>
+        <label htmlFor="password">Contrasena</label>
         <Input
           id="password"
           type="password"
@@ -106,19 +107,19 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
         ) : null}
       </div>
 
-      <Button type="submit" disabled={isSubmitting} aria-busy={isSubmitting}>
+      <Button type="submit" disabled={isSubmitting} aria-busy={isSubmitting} className="w-full">
         {isSubmitting ? (
           <span className="login-form__loading">
             <span className="login-form__spinner" aria-hidden="true" />
-            Iniciando sesión...
+            Iniciando sesion...
           </span>
         ) : (
-          'Iniciar sesión'
+          'Iniciar sesion'
         )}
       </Button>
 
       <p className="login-form__register">
-        Todavía no tienes una cuenta? <Link to="/register">Crear cuenta</Link>
+        Todavia no tenes cuenta? <Link to="/register">Crear cuenta</Link>
       </p>
     </form>
   );

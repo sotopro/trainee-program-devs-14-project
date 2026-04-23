@@ -1,13 +1,27 @@
-/**
- * Placeholder para la configuración de rutas de la aplicación.
- */
+import { Navigate, Route, Routes } from 'react-router-dom';
+import { Home, Login } from '@/pages';
 
-import type { ReactNode } from 'react';
-
-interface RouterPlaceholderProps {
-  children?: ReactNode;
+function AdminDashboard() {
+  return <h1>Panel de administración</h1>;
 }
 
-export function AppRouter({ children }: RouterPlaceholderProps) {
-  return <>{children}</>;
+function Catalog() {
+  return <h1>Catálogo de cursos</h1>;
+}
+
+function Register() {
+  return <h1>Crear cuenta</h1>;
+}
+
+export function AppRouter() {
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/admin/dashboard" element={<AdminDashboard />} />
+      <Route path="/catalog" element={<Catalog />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
+  );
 }

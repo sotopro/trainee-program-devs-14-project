@@ -1,2 +1,2 @@
-export * from './Home'; 
-export * from './Login';
+export { LoginPage as Login } from './Login';
+export * from './Home';

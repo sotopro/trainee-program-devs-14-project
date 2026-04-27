@@ -1,0 +1,168 @@
+import { create } from 'zustand';
+import { useShallow } from 'zustand/react/shallow';
+import { devtools, persist } from 'zustand/middleware';
+import { env } from '@/config/env';
+import type { LoginResponse, RefreshSessionResponse, User } from '../types/auth.types';
+import { isJwtExpired } from '../utils/token';
+
+const AUTH_STORAGE_KEY = 'learnpath-auth';
+const LEGACY_AUTH_STORAGE_KEY = 'learnpath.auth';
+const AUTH_STORAGE_VERSION = 1;
+
+export interface AuthState {
+  user: User | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+  isAuthenticated: boolean;
+  isHydrated: boolean;
+}
+
+export interface AuthActions {
+  login: (payload: LoginResponse) => void;
+  logout: () => void;
+  refreshSession: () => Promise<void>;
+  setHydrated: (isHydrated: boolean) => void;
+}
+
+type AuthStore = AuthState & AuthActions;
+
+const initialState: AuthState = {
+  user: null,
+  accessToken: null,
+  refreshToken: null,
+  isAuthenticated: false,
+  isHydrated: false,
+};
+
+const hasActiveSession = (state: Pick<AuthState, 'accessToken' | 'user'>) => {
+  return Boolean(state.accessToken && state.user);
+};
+
+const clearPersistedAuth = () => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.localStorage.removeItem(AUTH_STORAGE_KEY);
+  window.localStorage.removeItem(LEGACY_AUTH_STORAGE_KEY);
+};
+
+const clearedHydratedState: AuthState = {
+  ...initialState,
+  isHydrated: true,
+};
+
+export const useAuthStore = create<AuthStore>()(
+  devtools(
+    persist(
+      (set, get) => ({
+        ...initialState,
+        login: ({ accessToken, refreshToken, user }) => {
+          set(
+            {
+              accessToken,
+              refreshToken,
+              user,
+              isAuthenticated: hasActiveSession({ accessToken, user }),
+            },
+            false,
+            'auth/login',
+          );
+        },
+        logout: () => {
+          set(clearedHydratedState, false, 'auth/logout');
+          clearPersistedAuth();
+        },
+        setHydrated: (isHydrated) => {
+          set({ isHydrated }, false, 'auth/setHydrated');
+        },
+        refreshSession: async () => {
+          const currentRefreshToken = get().refreshToken;
+
+          if (!currentRefreshToken || isJwtExpired(currentRefreshToken)) {
+            get().logout();
+            return;
+          }
+
+          const response = await fetch(`${env.API_URL}/api/auth/refresh`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ refreshToken: currentRefreshToken }),
+          });
+
+          if (!response.ok) {
+            get().logout();
+            throw new Error('No pudimos refrescar la sesion.');
+          }
+
+          const data = (await response.json()) as RefreshSessionResponse;
+
+          set(
+            {
+              accessToken: data.accessToken,
+              refreshToken: data.refreshToken,
+              isAuthenticated: hasActiveSession({
+                accessToken: data.accessToken,
+                user: get().user,
+              }),
+            },
+            false,
+            'auth/refreshSession',
+          );
+        },
+      }),
+      {
+        name: AUTH_STORAGE_KEY,
+        version: AUTH_STORAGE_VERSION,
+        partialize: ({ user, accessToken, refreshToken }) => ({
+          user,
+          accessToken,
+          refreshToken,
+        }),
+        migrate: (persistedState) => {
+          const state = persistedState as Partial<AuthState> | undefined;
+
+          return {
+            ...initialState,
+            user: state?.user ?? null,
+            accessToken: state?.accessToken ?? null,
+            refreshToken: state?.refreshToken ?? null,
+            isAuthenticated: hasActiveSession({
+              user: state?.user ?? null,
+              accessToken: state?.accessToken ?? null,
+            }),
+          };
+        },
+        onRehydrateStorage: () => (state) => {
+          if (!state) {
+            return;
+          }
+
+          state.isAuthenticated = hasActiveSession(state);
+          state.setHydrated(true);
+        },
+      },
+    ),
+    {
+      name: 'AuthStore',
+      enabled: env.APP_ENV === 'development' || env.DEBUG,
+    },
+  ),
+);
+
+export const useAuthUser = () => useAuthStore((state) => state.user);
+export const useIsAuthenticated = () =>
+  useAuthStore((state) => hasActiveSession({ accessToken: state.accessToken, user: state.user }));
+export const useAccessToken = () => useAuthStore((state) => state.accessToken);
+export const useRefreshToken = () => useAuthStore((state) => state.refreshToken);
+export const useIsAuthHydrated = () => useAuthStore((state) => state.isHydrated);
+export const useAuthActions = () =>
+  useAuthStore(
+    useShallow((state) => ({
+      login: state.login,
+      logout: state.logout,
+      refreshSession: state.refreshSession,
+    })),
+  );

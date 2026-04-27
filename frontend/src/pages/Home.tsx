@@ -1,8 +1,8 @@
 export function Home() {
-    return (
-      <div>
-        <h2>Home Page</h2>
-        <p>Home page development in progress...</p>
-      </div>
-    );
-  }
+  return (
+    <main className="page-placeholder">
+      <h1>LearnPath</h1>
+      <p>Home page development in progress...</p>
+    </main>
+  );
+}

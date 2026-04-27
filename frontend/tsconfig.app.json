@@ -7,12 +7,14 @@
     "types": ["vite/client"],
     "skipLibCheck": true,
     "strict": true,
+    "baseUrl": ".",
     "paths": {
       "@/app/*": ["./src/app/*"],
       "@/features/*": ["./src/features/*"],
       "@/shared/*": ["./src/shared/*"],
       "@/pages/*": ["./src/pages/*"],
-      "@/config/*": ["./src/config/*"]
+      "@/config/*": ["./src/config/*"],
+      "@/*": ["./src/*"]
     },
     
     /* Bundler mode */

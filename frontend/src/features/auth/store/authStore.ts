@@ -12,12 +12,14 @@ export interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
+  isHydrated: boolean;
 }
 
 export interface AuthActions {
   login: (payload: LoginResponse) => void;
   logout: () => void;
   refreshSession: () => Promise<void>;
+  setHydrated: (isHydrated: boolean) => void;
 }
 
 type AuthStore = AuthState & AuthActions;
@@ -27,6 +29,7 @@ const initialState: AuthState = {
   accessToken: null,
   refreshToken: null,
   isAuthenticated: false,
+  isHydrated: false,
 };
 
 const hasActiveSession = (state: Pick<AuthState, 'accessToken' | 'user'>) => {
@@ -62,6 +65,9 @@ export const useAuthStore = create<AuthStore>()(
         logout: () => {
           set(initialState, false, 'auth/logout');
           clearPersistedAuth();
+        },
+        setHydrated: (isHydrated) => {
+          set({ isHydrated }, false, 'auth/setHydrated');
         },
         refreshSession: async () => {
           const currentRefreshToken = get().refreshToken;
@@ -114,6 +120,7 @@ export const useAuthStore = create<AuthStore>()(
           }
 
           state.isAuthenticated = hasActiveSession(state);
+          state.setHydrated(true);
         },
       },
     ),
@@ -129,6 +136,7 @@ export const useIsAuthenticated = () =>
   useAuthStore((state) => hasActiveSession({ accessToken: state.accessToken, user: state.user }));
 export const useAccessToken = () => useAuthStore((state) => state.accessToken);
 export const useRefreshToken = () => useAuthStore((state) => state.refreshToken);
+export const useIsAuthHydrated = () => useAuthStore((state) => state.isHydrated);
 export const useAuthActions = () =>
   useAuthStore(
     useShallow((state) => ({

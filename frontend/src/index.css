@@ -136,6 +136,17 @@ a:hover {
   text-align: center;
 }
 
+.auth-card--centered {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.auth-card__action {
+  margin-top: 8px;
+}
+
 .auth-card__eyebrow {
   margin-bottom: 8px;
   color: var(--accent);
@@ -249,6 +260,21 @@ a:hover {
   border-top-color: #fff;
   border-radius: 999px;
   animation: spin 700ms linear infinite;
+}
+
+.auth-guard-loading {
+  min-height: 100svh;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--text-h);
+  font-weight: 650;
+}
+
+.auth-guard-loading__spinner {
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+  border-top-color: var(--accent);
 }
 
 .login-form__register {

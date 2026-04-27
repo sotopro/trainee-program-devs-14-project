@@ -1,5 +1,7 @@
 export * from './components/LoginForm';
+export * from './components/ProtectedRoute';
 export * from './components/RegisterForm';
+export * from './components/RoleGuard';
 export * from './schemas/loginSchema';
 export * from './schemas/registerSchema';
 export * from './services/authService';

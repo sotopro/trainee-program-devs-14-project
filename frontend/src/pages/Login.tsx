@@ -1,11 +1,17 @@
-﻿import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { LoginForm, type LoginResponse } from '@/features/auth';
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const handleLoginSuccess = ({ user }: LoginResponse) => {
-    navigate(user.role === 'ADMIN' ? '/admin/dashboard' : '/catalog', { replace: true });
+    const redirect = searchParams.get('redirect');
+    const safeRedirect = redirect?.startsWith('/') && !redirect.startsWith('//') ? redirect : null;
+
+    navigate(safeRedirect ?? (user.role === 'ADMIN' ? '/admin/dashboard' : '/catalog'), {
+      replace: true,
+    });
   };
 
   return (

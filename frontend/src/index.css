@@ -167,6 +167,21 @@ a:hover {
   font-weight: 650;
 }
 
+.login-form__password-control {
+  position: relative;
+}
+
+.login-form__password-control input {
+  padding-right: 84px;
+}
+
+.login-form__password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+}
+
 .ui-input {
   width: 100%;
   min-height: 46px;

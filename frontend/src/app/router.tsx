@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { Home, Login } from '@/pages';
+import { Home, Login, Register } from '@/pages';
 
 function AdminDashboard() {
   return <h1>Panel de administración</h1>;
@@ -7,10 +7,6 @@ function AdminDashboard() {
 
 function Catalog() {
   return <h1>Catálogo de cursos</h1>;
-}
-
-function Register() {
-  return <h1>Crear cuenta</h1>;
 }
 
 export function AppRouter() {

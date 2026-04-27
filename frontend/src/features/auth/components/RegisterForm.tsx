@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { ApiError } from '@/shared/lib';
 import { registerSchema, type RegisterFormValues } from '../schemas/registerSchema';
 import { authService } from '../services/authService';
-import { useAuthStore } from '../store/authStore';
+import { useAuthActions } from '../store/authStore';
 import type { LoginResponse } from '../types/auth.types';
 
 type RegisterFormProps = {
@@ -18,7 +18,7 @@ type RegisterFormProps = {
 const DEFAULT_REGISTER_ERROR = 'No pudimos crear tu cuenta. Intenta nuevamente.';
 
 export function RegisterForm({ onRegisterSuccess }: RegisterFormProps) {
-  const storeLogin = useAuthStore((state) => state.login);
+  const { login } = useAuthActions();
   const [formError, setFormError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -39,7 +39,7 @@ export function RegisterForm({ onRegisterSuccess }: RegisterFormProps) {
   const registerMutation = useMutation({
     mutationFn: authService.register,
     onSuccess: (response) => {
-      storeLogin(response);
+      login(response);
       onRegisterSuccess(response);
     },
     onError: (error) => {

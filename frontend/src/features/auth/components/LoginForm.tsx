@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { ApiError } from '@/shared/lib';
 import { loginSchema, type LoginFormValues } from '../schemas/loginSchema';
 import { authService } from '../services/authService';
-import { useAuthStore } from '../store/authStore';
+import { useAuthActions } from '../store/authStore';
 import type { LoginResponse } from '../types/auth.types';
 
 type LoginFormProps = {
@@ -18,7 +18,7 @@ type LoginFormProps = {
 const DEFAULT_LOGIN_ERROR = 'No pudimos iniciar sesion. Revisa tus credenciales e intenta nuevamente.';
 
 export function LoginForm({ onLoginSuccess }: LoginFormProps) {
-  const storeLogin = useAuthStore((state) => state.login);
+  const { login } = useAuthActions();
   const [formError, setFormError] = useState<string | null>(null);
 
   const {
@@ -36,7 +36,7 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
   const loginMutation = useMutation({
     mutationFn: authService.login,
     onSuccess: (response) => {
-      storeLogin(response);
+      login(response);
       onLoginSuccess(response);
     },
     onError: (error) => {

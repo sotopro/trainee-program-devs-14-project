@@ -1,14 +1,19 @@
 import { BrowserRouter } from 'react-router-dom';
 import { AuthSessionGate } from '@/features/auth';
+import { GlobalErrorBoundary, NotificationProvider } from '@/shared/providers';
 import { AppRouter } from './router';
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthSessionGate>
-        <AppRouter />
-      </AuthSessionGate>
-    </BrowserRouter>
+    <NotificationProvider>
+      <GlobalErrorBoundary>
+        <BrowserRouter>
+          <AuthSessionGate>
+            <AppRouter />
+          </AuthSessionGate>
+        </BrowserRouter>
+      </GlobalErrorBoundary>
+    </NotificationProvider>
   );
 }
 

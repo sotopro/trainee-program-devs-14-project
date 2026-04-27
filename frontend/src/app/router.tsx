@@ -1,13 +1,14 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute, RoleGuard } from '@/features/auth';
 import { Home, Login, Register, Unauthorized } from '@/pages';
+import { SectionErrorBoundary } from '@/shared/providers';
 
 function AdminDashboard() {
-  return <h1>Panel de administración</h1>;
+  return <h1>Panel de administracion</h1>;
 }
 
 function Catalog() {
-  return <h1>Catálogo de cursos</h1>;
+  return <h1>Catalogo de cursos</h1>;
 }
 
 function Courses() {
@@ -27,12 +28,40 @@ export function AppRouter() {
       <Route path="/unauthorized" element={<Unauthorized />} />
 
       <Route element={<ProtectedRoute />}>
-        <Route path="/catalog" element={<Catalog />} />
-        <Route path="/courses/*" element={<Courses />} />
-        <Route path="/learning-paths/*" element={<LearningPaths />} />
+        <Route
+          path="/catalog"
+          element={
+            <SectionErrorBoundary name="Catalog">
+              <Catalog />
+            </SectionErrorBoundary>
+          }
+        />
+        <Route
+          path="/courses/*"
+          element={
+            <SectionErrorBoundary name="Courses">
+              <Courses />
+            </SectionErrorBoundary>
+          }
+        />
+        <Route
+          path="/learning-paths/*"
+          element={
+            <SectionErrorBoundary name="LearningPaths">
+              <LearningPaths />
+            </SectionErrorBoundary>
+          }
+        />
 
         <Route element={<RoleGuard allowedRoles={['ADMIN']} />}>
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route
+            path="/admin/dashboard"
+            element={
+              <SectionErrorBoundary name="AdminDashboard" fallbackVariant="card">
+                <AdminDashboard />
+              </SectionErrorBoundary>
+            }
+          />
         </Route>
       </Route>
 

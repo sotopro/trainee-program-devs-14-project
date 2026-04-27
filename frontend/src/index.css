@@ -277,6 +277,112 @@ a:hover {
   border-top-color: var(--accent);
 }
 
+.error-fallback {
+  border: 1px solid var(--danger-border);
+  color: var(--text);
+  background: var(--danger-bg);
+}
+
+.error-fallback--full-page {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.error-fallback--inline,
+.error-fallback--card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 16px;
+}
+
+.error-fallback--card {
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.error-fallback__content {
+  width: min(100%, 560px);
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+}
+
+.error-fallback__illustration {
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 16px;
+  border-radius: 999px;
+  color: var(--danger);
+  background: var(--surface);
+  font-size: 2.5rem;
+  font-weight: 900;
+}
+
+.error-fallback__eyebrow {
+  color: var(--danger);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.error-fallback__action {
+  margin-top: 4px;
+}
+
+.error-fallback__debug {
+  width: 100%;
+  margin-top: 8px;
+  text-align: left;
+}
+
+.error-fallback__debug pre {
+  max-height: 220px;
+  overflow: auto;
+  padding: 12px;
+  border-radius: 12px;
+  color: var(--text-h);
+  background: color-mix(in srgb, var(--surface) 85%, black);
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+}
+
+.notification-stack {
+  position: fixed;
+  z-index: 50;
+  right: 16px;
+  bottom: 16px;
+  display: grid;
+  gap: 10px;
+  width: min(calc(100vw - 32px), 360px);
+}
+
+.notification-toast {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.notification-toast--error {
+  border-color: var(--danger-border);
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.notification-toast p {
+  margin-top: 4px;
+  color: inherit;
+  font-size: 0.9rem;
+}
+
 .login-form__register {
   text-align: center;
 }

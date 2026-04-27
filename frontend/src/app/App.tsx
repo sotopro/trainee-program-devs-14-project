@@ -1,10 +1,13 @@
 import { BrowserRouter } from 'react-router-dom';
+import { AuthSessionGate } from '@/features/auth';
 import { AppRouter } from './router';
 
 function App() {
   return (
     <BrowserRouter>
-      <AppRouter />
+      <AuthSessionGate>
+        <AppRouter />
+      </AuthSessionGate>
     </BrowserRouter>
   );
 }

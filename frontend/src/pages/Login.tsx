@@ -4,6 +4,7 @@ import { LoginForm, type LoginResponse } from '@/features/auth';
 export function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const sessionExpired = searchParams.get('session') === 'expired';
 
   const handleLoginSuccess = ({ user }: LoginResponse) => {
     const redirect = searchParams.get('redirect');
@@ -22,6 +23,11 @@ export function LoginPage() {
           <h1 id="login-title">Iniciar sesion</h1>
           <p>Entra con tus credenciales para continuar tu ruta de aprendizaje.</p>
         </div>
+        {sessionExpired ? (
+          <div className="login-form__alert" role="alert">
+            Tu sesion expiro. Inicia sesion nuevamente para continuar.
+          </div>
+        ) : null}
         <LoginForm onLoginSuccess={handleLoginSuccess} />
       </section>
     </main>

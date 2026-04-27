@@ -3,9 +3,11 @@ import { useShallow } from 'zustand/react/shallow';
 import { devtools, persist } from 'zustand/middleware';
 import { env } from '@/config/env';
 import type { LoginResponse, RefreshSessionResponse, User } from '../types/auth.types';
+import { isJwtExpired } from '../utils/token';
 
 const AUTH_STORAGE_KEY = 'learnpath-auth';
 const LEGACY_AUTH_STORAGE_KEY = 'learnpath.auth';
+const AUTH_STORAGE_VERSION = 1;
 
 export interface AuthState {
   user: User | null;
@@ -45,6 +47,11 @@ const clearPersistedAuth = () => {
   window.localStorage.removeItem(LEGACY_AUTH_STORAGE_KEY);
 };
 
+const clearedHydratedState: AuthState = {
+  ...initialState,
+  isHydrated: true,
+};
+
 export const useAuthStore = create<AuthStore>()(
   devtools(
     persist(
@@ -63,7 +70,7 @@ export const useAuthStore = create<AuthStore>()(
           );
         },
         logout: () => {
-          set(initialState, false, 'auth/logout');
+          set(clearedHydratedState, false, 'auth/logout');
           clearPersistedAuth();
         },
         setHydrated: (isHydrated) => {
@@ -72,7 +79,7 @@ export const useAuthStore = create<AuthStore>()(
         refreshSession: async () => {
           const currentRefreshToken = get().refreshToken;
 
-          if (!currentRefreshToken) {
+          if (!currentRefreshToken || isJwtExpired(currentRefreshToken)) {
             get().logout();
             return;
           }
@@ -108,12 +115,26 @@ export const useAuthStore = create<AuthStore>()(
       }),
       {
         name: AUTH_STORAGE_KEY,
-        partialize: ({ user, accessToken, refreshToken, isAuthenticated }) => ({
+        version: AUTH_STORAGE_VERSION,
+        partialize: ({ user, accessToken, refreshToken }) => ({
           user,
           accessToken,
           refreshToken,
-          isAuthenticated: hasActiveSession({ user, accessToken }) && isAuthenticated,
         }),
+        migrate: (persistedState) => {
+          const state = persistedState as Partial<AuthState> | undefined;
+
+          return {
+            ...initialState,
+            user: state?.user ?? null,
+            accessToken: state?.accessToken ?? null,
+            refreshToken: state?.refreshToken ?? null,
+            isAuthenticated: hasActiveSession({
+              user: state?.user ?? null,
+              accessToken: state?.accessToken ?? null,
+            }),
+          };
+        },
         onRehydrateStorage: () => (state) => {
           if (!state) {
             return;

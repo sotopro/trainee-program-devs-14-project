@@ -1,17 +1,10 @@
-import { type ReactNode } from 'react';
-import { useLayout } from './LayoutContext';
+import { SidebarDesktop } from './SidebarDesktop';
+import { SidebarMobile } from './SidebarMobile';
+import { useMediaQuery } from '@/shared/hooks/useMediaQuery';
 
-interface LayoutSidebarProps {
-  children?: ReactNode;
-}
-
-export const LayoutSidebar = ({ children }: LayoutSidebarProps) => {
+export const LayoutSidebar = () => {
   
-  useLayout();
+  const isDesktop = useMediaQuery('(min-width: 768px)');
 
-  return (
-    <aside className="[grid-area:sidebar] border-r bg-background">
-      {children}
-    </aside>
-  );
+  return isDesktop ? <SidebarDesktop /> : <SidebarMobile />;
 };

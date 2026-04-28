@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button';
+import { Button } from '@/shared/components/ui/button';
 import { env } from '@/config/env';
 
 export type ErrorFallbackVariant = 'full-page' | 'inline' | 'card';

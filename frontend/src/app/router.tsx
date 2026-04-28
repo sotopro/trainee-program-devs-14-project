@@ -2,14 +2,25 @@ import { Navigate, Route, Routes, Outlet } from 'react-router-dom';
 import { ProtectedRoute, RoleGuard } from '@/features/auth';
 import { Home, Login, Register, Unauthorized } from '@/pages';
 import { SectionErrorBoundary } from '@/shared/providers';
-import { AppLayout } from '@/shared/components/layout';
+import { AppLayout, PageShell } from '@/shared/components/layout';
+import { Button } from '@/shared/components/ui/button';
 
 function AdminDashboard() {
   return <h1>Panel de administracion</h1>;
 }
 
+// implementation example of the PageShell component for the Catalog section.
 function Catalog() {
-  return <h1>Catalogo de cursos</h1>;
+  return (
+    <PageShell 
+      title="Catálogo de Cursos" 
+      actions={<Button>Nuevo Curso</Button>}
+    >
+      <div className="p-6 border-2 border-dashed border-muted-foreground/25 rounded-lg h-96 flex items-center justify-center text-muted-foreground">
+        Aquí irá la cuadrícula (Grid) con las tarjetas de los cursos.
+      </div>
+    </PageShell>
+  );
 }
 
 function Courses() {

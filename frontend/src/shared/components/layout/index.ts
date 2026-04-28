@@ -4,3 +4,7 @@ export * from './LayoutHeader';
 export * from './LayoutSidebar';
 export * from './LayoutContent';
 export * from './LayoutFooter';
+export * from './SidebarNav';
+export * from './SidebarDesktop';
+export * from './SidebarMobile';
+export * from './PageShell';

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/shared/components/ui/button';
 
 export function UnauthorizedPage() {
   return (

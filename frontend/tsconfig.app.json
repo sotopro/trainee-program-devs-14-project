@@ -8,6 +8,7 @@
     "skipLibCheck": true,
     "strict": true,
     "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@/app/*": ["./src/app/*"],
       "@/features/*": ["./src/features/*"],

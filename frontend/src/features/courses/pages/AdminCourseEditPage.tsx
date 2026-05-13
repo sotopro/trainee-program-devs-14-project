@@ -7,6 +7,7 @@ import { CourseForm } from '../components/CourseForm';
 import { ModuleAccordion } from '../components/ModuleAccordion';
 import { useCourse, useUpdateCourse } from '../hooks/useCourses';
 import type { CourseFormData } from '../schemas/course.schema';
+import type { CourseDetail } from '../types/course.types';
 
 const toFormData = (course: CourseFormData): CourseFormData => ({
   title: course.title,
@@ -15,6 +16,24 @@ const toFormData = (course: CourseFormData): CourseFormData => ({
   isPublic: course.isPublic,
   modules: course.modules,
 });
+
+const reorderById = <T extends { id?: string; order: number }>(items: T[], sourceId: string, targetId: string): T[] => {
+  const sourceIndex = items.findIndex((item) => item.id === sourceId);
+  const targetIndex = items.findIndex((item) => item.id === targetId);
+
+  if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) {
+    return items;
+  }
+
+  const nextItems = [...items];
+  const [movedItem] = nextItems.splice(sourceIndex, 1);
+  nextItems.splice(targetIndex, 0, movedItem);
+
+  return nextItems.map((item, index) => ({
+    ...item,
+    order: index + 1,
+  }));
+};
 
 export function AdminCourseEditPage() {
   const { courseId } = useParams();
@@ -34,6 +53,88 @@ export function AdminCourseEditPage() {
     } catch {
       setFormError('No pudimos guardar los cambios. Revisa los datos e intenta nuevamente.');
     }
+  };
+
+  const persistCourseStructure = async (nextCourse: CourseDetail) => {
+    setFormError(null);
+
+    try {
+      await updateCourse.mutateAsync(toFormData(nextCourse));
+    } catch {
+      setFormError('No pudimos guardar la estructura del curso. Intenta nuevamente.');
+    }
+  };
+
+  const handleReorderModules = (sourceModuleId: string, targetModuleId: string) => {
+    if (!courseQuery.data) {
+      return;
+    }
+
+    void persistCourseStructure({
+      ...courseQuery.data,
+      modules: reorderById(courseQuery.data.modules, sourceModuleId, targetModuleId),
+    });
+  };
+
+  const handleReorderLessons = (moduleId: string, sourceLessonId: string, targetLessonId: string) => {
+    if (!courseQuery.data) {
+      return;
+    }
+
+    void persistCourseStructure({
+      ...courseQuery.data,
+      modules: courseQuery.data.modules.map((module) =>
+        module.id === moduleId
+          ? {
+              ...module,
+              lessons: reorderById(module.lessons, sourceLessonId, targetLessonId),
+            }
+          : module,
+      ),
+    });
+  };
+
+  const handleUpdateModuleTitle = (moduleId: string, title: string) => {
+    if (!courseQuery.data) {
+      return;
+    }
+
+    void persistCourseStructure({
+      ...courseQuery.data,
+      modules: courseQuery.data.modules.map((module) =>
+        module.id === moduleId
+          ? {
+              ...module,
+              title,
+            }
+          : module,
+      ),
+    });
+  };
+
+  const handleUpdateLessonTitle = (moduleId: string, lessonId: string, title: string) => {
+    if (!courseQuery.data) {
+      return;
+    }
+
+    void persistCourseStructure({
+      ...courseQuery.data,
+      modules: courseQuery.data.modules.map((module) =>
+        module.id === moduleId
+          ? {
+              ...module,
+              lessons: module.lessons.map((lesson) =>
+                lesson.id === lessonId
+                  ? {
+                      ...lesson,
+                      title,
+                    }
+                  : lesson,
+              ),
+            }
+          : module,
+      ),
+    });
   };
 
   return (
@@ -81,7 +182,13 @@ export function AdminCourseEditPage() {
                 <CardTitle>Estructura del curso</CardTitle>
               </CardHeader>
               <CardContent>
-                <ModuleAccordion modules={courseQuery.data.modules} />
+                <ModuleAccordion
+                  modules={courseQuery.data.modules}
+                  onReorderModules={handleReorderModules}
+                  onReorderLessons={handleReorderLessons}
+                  onUpdateModuleTitle={handleUpdateModuleTitle}
+                  onUpdateLessonTitle={handleUpdateLessonTitle}
+                />
               </CardContent>
             </Card>
 

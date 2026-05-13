@@ -25,3 +25,15 @@ export const createCourse = async (req: Request, res: Response) => {
 
   return res.status(201).json(result);
 };
+
+export const updateCourse = async (req: Request<{ id: string }>, res: Response) => {
+  const result = await courseService.updateCourse(req.params.id, req.body);
+
+  return res.status(200).json(result);
+};
+
+export const deleteCourse = async (req: Request<{ id: string }>, res: Response) => {
+  await courseService.deleteCourse(req.params.id);
+
+  return res.status(204).send();
+};

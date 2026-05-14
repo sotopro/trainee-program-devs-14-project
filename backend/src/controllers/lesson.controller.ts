@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import type {
   CreateLessonInput,
+  ReorderLessonsInput,
   UpdateLessonInput,
 } from '../modules/lessons/schemas/createLessonSchema.js';
 import { lessonService } from '../services/lesson.service.js';
@@ -37,6 +38,15 @@ export const deleteLesson = async (
   res: Response,
 ) => {
   await lessonService.deleteLesson(req.params.id);
+
+  return res.status(204).send();
+};
+
+export const reorderLessons = async (
+  req: Request<Record<string, never>, unknown, ReorderLessonsInput>,
+  res: Response,
+) => {
+  await lessonService.reorderLessons(req.body);
 
   return res.status(204).send();
 };

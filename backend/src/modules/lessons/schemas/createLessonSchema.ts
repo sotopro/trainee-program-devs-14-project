@@ -23,3 +23,16 @@ export const updateLessonSchema = z.object({
 });
 
 export type UpdateLessonInput = z.infer<typeof updateLessonSchema>;
+
+export const reorderLessonsSchema = z.object({
+  lessons: z
+    .array(
+      z.object({
+        id: z.string().min(1, 'El id de la leccion es requerido'),
+        order: z.number().int().min(1, 'El orden debe ser mayor o igual a 1'),
+      }),
+    )
+    .min(1, 'Debes enviar al menos una leccion para reordenar'),
+});
+
+export type ReorderLessonsInput = z.infer<typeof reorderLessonsSchema>;

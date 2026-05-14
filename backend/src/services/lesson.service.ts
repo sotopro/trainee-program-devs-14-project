@@ -1,9 +1,10 @@
 import { prisma } from '../config/prisma.js';
 import type {
   CreateLessonInput,
+  ReorderLessonsInput,
   UpdateLessonInput,
 } from '../modules/lessons/schemas/createLessonSchema.js';
-import { NotFoundError } from '../utils/app-error.js';
+import { ConflictError, NotFoundError } from '../utils/app-error.js';
 
 const DEFAULT_LESSON_DURATION = 0;
 const DEFAULT_EDITOR_CONTENT = {
@@ -263,10 +264,55 @@ const deleteLesson = async (lessonId: string) => {
   });
 };
 
+const reorderLessons = async (input: ReorderLessonsInput) => {
+  const lessonIds = input.lessons.map((lesson) => lesson.id);
+  const uniqueLessonIds = new Set(lessonIds);
+
+  if (uniqueLessonIds.size !== lessonIds.length) {
+    throw new ConflictError('No puedes enviar lecciones duplicadas para reordenar');
+  }
+
+  const lessons = await prisma.lesson.findMany({
+    where: {
+      id: {
+        in: lessonIds,
+      },
+    },
+    select: {
+      id: true,
+      moduleId: true,
+    },
+  });
+
+  if (lessons.length !== lessonIds.length) {
+    throw new NotFoundError('Una o mas lecciones no fueron encontradas');
+  }
+
+  const moduleIds = new Set(lessons.map((lesson) => lesson.moduleId));
+
+  if (moduleIds.size !== 1) {
+    throw new ConflictError('Todas las lecciones deben pertenecer al mismo modulo');
+  }
+
+  await prisma.$transaction(
+    input.lessons.map((lesson) =>
+      prisma.lesson.update({
+        where: {
+          id: lesson.id,
+        },
+        data: {
+          order: lesson.order,
+        },
+      }),
+    ),
+  );
+};
+
 export const lessonService = {
   createLesson,
   deleteLesson,
   getLessonById,
   listLessonsByModule,
+  reorderLessons,
   updateLesson,
 };

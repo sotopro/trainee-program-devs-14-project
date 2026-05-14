@@ -7,9 +7,10 @@ import { AuthLoading } from './AuthLoading';
 type RoleGuardProps = {
   allowedRoles: UserRole[];
   children?: ReactNode;
+  redirectTo?: string;
 };
 
-export function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
+export function RoleGuard({ allowedRoles, children, redirectTo = '/unauthorized' }: RoleGuardProps) {
   const isHydrated = useIsAuthHydrated();
   const user = useAuthUser();
 
@@ -18,7 +19,7 @@ export function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
   }
 
   if (!user || !allowedRoles.includes(user.role)) {
-    return <Navigate to="/unauthorized" replace />;
+    return <Navigate to={redirectTo} replace />;
   }
 
   return children ?? <Outlet />;

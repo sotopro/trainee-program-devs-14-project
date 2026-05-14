@@ -8,6 +8,7 @@ import {
 } from '../controllers/course.controller.js';
 import {
   assignCourse,
+  listAssignableUsers,
   listCourseEnrollments,
   unassignCourse,
 } from '../controllers/assignment.controller.js';
@@ -32,6 +33,12 @@ router.post(
   assignCourse,
 );
 router.get('/:courseId/enrollments', authMiddleware, roleMiddleware(['ADMIN']), listCourseEnrollments);
+router.get(
+  '/:courseId/assignable-users',
+  authMiddleware,
+  roleMiddleware(['ADMIN']),
+  listAssignableUsers,
+);
 router.get('/:courseId/modules', listCourseModules);
 router.post(
   '/:courseId/modules',

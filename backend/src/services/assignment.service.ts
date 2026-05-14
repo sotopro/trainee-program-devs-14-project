@@ -1,5 +1,6 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import { prisma } from '../config/prisma.js';
+import type { AssignableUsersQuery } from '../modules/courses/schemas/assignableUsersQuerySchema.js';
 import type { AssignCourseInput } from '../modules/courses/schemas/assignCourseSchema.js';
 import { ConflictError, NotFoundError } from '../utils/app-error.js';
 
@@ -229,8 +230,126 @@ const listCourseEnrollments = async (courseId: string) => {
   });
 };
 
+const buildAssignableUsersWhere = (
+  query: Pick<AssignableUsersQuery, 'search'>,
+): Prisma.UserWhereInput => {
+  const where: Prisma.UserWhereInput = {
+    role: Role.USER,
+  };
+
+  if (query.search) {
+    where.OR = [
+      { name: { contains: query.search, mode: 'insensitive' } },
+      { email: { contains: query.search, mode: 'insensitive' } },
+    ];
+  }
+
+  return where;
+};
+
+const listAssignableUsers = async (courseId: string, query: AssignableUsersQuery) => {
+  const course = await prisma.course.findUnique({
+    where: {
+      id: courseId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!course) {
+    throw new NotFoundError('Curso no encontrado');
+  }
+
+  const where = buildAssignableUsersWhere(query);
+  const skip = (query.page - 1) * query.limit;
+
+  const [total, users, totalLessons] = await prisma.$transaction([
+    prisma.user.count({ where }),
+    prisma.user.findMany({
+      where,
+      skip,
+      take: query.limit,
+      orderBy: {
+        name: 'asc',
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        enrollments: {
+          where: {
+            courseId,
+          },
+          take: 1,
+          select: {
+            id: true,
+            status: true,
+            enrolledAt: true,
+          },
+        },
+      },
+    }),
+    prisma.lesson.count({
+      where: {
+        module: {
+          courseId,
+        },
+      },
+    }),
+  ]);
+
+  const userIds = users.map((user) => user.id);
+  const progressByUser =
+    userIds.length > 0
+      ? await prisma.progress.groupBy({
+          by: ['userId'],
+          where: {
+            courseId,
+            completed: true,
+            userId: {
+              in: userIds,
+            },
+          },
+          _count: {
+            lessonId: true,
+          },
+        })
+      : [];
+  const completedLessonsByUserId = new Map(
+    progressByUser.map((progress) => [progress.userId, progress._count.lessonId]),
+  );
+
+  return {
+    data: users.map((user) => {
+      const enrollment = user.enrollments[0];
+      const completedLessons = completedLessonsByUserId.get(user.id) ?? 0;
+      const progress = enrollment && totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        assignedAt: enrollment?.enrolledAt ?? null,
+        enrollmentId: enrollment?.id ?? null,
+        enrollmentStatus: enrollment?.status ?? null,
+        progress,
+      };
+    }),
+    pagination: {
+      total,
+      totalPages: Math.ceil(total / query.limit),
+      currentPage: query.page,
+      limit: query.limit,
+    },
+  };
+};
+
 export const assignmentService = {
   assignCourse,
+  listAssignableUsers,
   listCourseEnrollments,
   unassignCourse,
 };

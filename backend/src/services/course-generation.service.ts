@@ -184,6 +184,8 @@ class CourseGenerationService {
         data: {
           name: `${proposal.title} - Default Path`,
           userId,
+          courseId: course.id,
+          isDefault: true,
           isForked: false,
         },
       });

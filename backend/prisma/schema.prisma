@@ -94,6 +94,7 @@ model Course {
   author      User         @relation("CourseAuthor", fields: [authorId], references: [id])
   modules     Module[]
   enrollments Enrollment[]
+  learningPaths LearningPath[]
   progress    Progress[]
 
   @@index([authorId])
@@ -135,18 +136,21 @@ model Lesson {
 }
 
 model Enrollment {
-  id         String           @id @default(cuid())
-  userId     String
-  courseId   String
-  status     EnrollmentStatus @default(ACTIVE)
-  enrolledAt DateTime         @default(now())
+  id             String           @id @default(cuid())
+  userId         String
+  courseId       String
+  learningPathId String?
+  status         EnrollmentStatus @default(ACTIVE)
+  enrolledAt     DateTime         @default(now())
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course       Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  learningPath LearningPath? @relation(fields: [learningPathId], references: [id], onDelete: SetNull)
 
   @@unique([userId, courseId])
   @@index([userId])
   @@index([courseId])
+  @@index([learningPathId])
 }
 
 // ============================================================================
@@ -158,16 +162,21 @@ model LearningPath {
   name           String
   description    String?
   userId         String
+  courseId       String?
+  isDefault      Boolean  @default(false)
   isForked       Boolean  @default(false)
   originalPathId String?
   createdAt      DateTime @default(now())
 
   user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course       Course?            @relation(fields: [courseId], references: [id], onDelete: Cascade)
   originalPath LearningPath?      @relation("PathForks", fields: [originalPathId], references: [id])
   forks        LearningPath[]     @relation("PathForks")
+  enrollments  Enrollment[]
   items        LearningPathItem[]
 
   @@index([userId])
+  @@index([courseId])
   @@index([originalPathId])
 }
 

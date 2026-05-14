@@ -1,5 +1,8 @@
 import type { Request, Response } from 'express';
-import type { CreateLessonInput } from '../modules/lessons/schemas/createLessonSchema.js';
+import type {
+  CreateLessonInput,
+  UpdateLessonInput,
+} from '../modules/lessons/schemas/createLessonSchema.js';
 import { lessonService } from '../services/lesson.service.js';
 
 export const createModuleLesson = async (
@@ -18,6 +21,24 @@ export const getLessonById = async (
   const result = await lessonService.getLessonById(req.params.id);
 
   return res.status(200).json(result);
+};
+
+export const updateLesson = async (
+  req: Request<{ id: string }, unknown, UpdateLessonInput>,
+  res: Response,
+) => {
+  const result = await lessonService.updateLesson(req.params.id, req.body);
+
+  return res.status(200).json(result);
+};
+
+export const deleteLesson = async (
+  req: Request<{ id: string }>,
+  res: Response,
+) => {
+  await lessonService.deleteLesson(req.params.id);
+
+  return res.status(204).send();
 };
 
 export const listModuleLessons = async (

@@ -1,5 +1,8 @@
 import { prisma } from '../config/prisma.js';
-import type { CreateLessonInput } from '../modules/lessons/schemas/createLessonSchema.js';
+import type {
+  CreateLessonInput,
+  UpdateLessonInput,
+} from '../modules/lessons/schemas/createLessonSchema.js';
 import { NotFoundError } from '../utils/app-error.js';
 
 const DEFAULT_LESSON_DURATION = 0;
@@ -165,8 +168,105 @@ const createLesson = async (moduleId: string, input: CreateLessonInput) => {
   });
 };
 
+const updateLesson = async (lessonId: string, input: UpdateLessonInput) => {
+  const existingLesson = await prisma.lesson.findUnique({
+    where: {
+      id: lessonId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!existingLesson) {
+    throw new NotFoundError('Leccion no encontrada');
+  }
+
+  const lesson = await prisma.lesson.update({
+    where: {
+      id: lessonId,
+    },
+    data: {
+      title: input.title,
+      content: JSON.stringify(input.content),
+    },
+    select: {
+      id: true,
+      title: true,
+      content: true,
+      order: true,
+      moduleId: true,
+      createdAt: true,
+      _count: {
+        select: {
+          quizzes: true,
+        },
+      },
+    },
+  });
+
+  const { _count, content, ...lessonData } = lesson;
+
+  return {
+    ...lessonData,
+    content: parseLessonContent(content),
+    hasQuiz: _count.quizzes > 0,
+  };
+};
+
+const deleteLesson = async (lessonId: string) => {
+  const existingLesson = await prisma.lesson.findUnique({
+    where: {
+      id: lessonId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!existingLesson) {
+    throw new NotFoundError('Leccion no encontrada');
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.quizAttempt.deleteMany({
+      where: {
+        quiz: {
+          lessonId,
+        },
+      },
+    });
+
+    await tx.quiz.deleteMany({
+      where: {
+        lessonId,
+      },
+    });
+
+    await tx.progress.deleteMany({
+      where: {
+        lessonId,
+      },
+    });
+
+    await tx.learningPathItem.deleteMany({
+      where: {
+        lessonId,
+      },
+    });
+
+    await tx.lesson.delete({
+      where: {
+        id: lessonId,
+      },
+    });
+  });
+};
+
 export const lessonService = {
   createLesson,
+  deleteLesson,
   getLessonById,
   listLessonsByModule,
+  updateLesson,
 };

@@ -142,7 +142,83 @@ const unassignCourse = async (courseId: string, userId: string) => {
   });
 };
 
+const listCourseEnrollments = async (courseId: string) => {
+  const course = await prisma.course.findUnique({
+    where: {
+      id: courseId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!course) {
+    throw new NotFoundError('Curso no encontrado');
+  }
+
+  const [enrollments, totalLessons] = await Promise.all([
+    prisma.enrollment.findMany({
+      where: {
+        courseId,
+      },
+      orderBy: {
+        enrolledAt: 'desc',
+      },
+      select: {
+        id: true,
+        status: true,
+        enrolledAt: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    }),
+    prisma.lesson.count({
+      where: {
+        module: {
+          courseId,
+        },
+      },
+    }),
+  ]);
+
+  const progressByUser = await prisma.progress.groupBy({
+    by: ['userId'],
+    where: {
+      courseId,
+      completed: true,
+      userId: {
+        in: enrollments.map((enrollment) => enrollment.user.id),
+      },
+    },
+    _count: {
+      lessonId: true,
+    },
+  });
+  const completedLessonsByUserId = new Map(
+    progressByUser.map((progress) => [progress.userId, progress._count.lessonId]),
+  );
+
+  return enrollments.map((enrollment) => {
+    const completedLessons = completedLessonsByUserId.get(enrollment.user.id) ?? 0;
+    const progress = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+
+    return {
+      id: enrollment.id,
+      user: enrollment.user,
+      status: enrollment.status,
+      progress,
+      enrolledAt: enrollment.enrolledAt,
+    };
+  });
+};
+
 export const assignmentService = {
   assignCourse,
+  listCourseEnrollments,
   unassignCourse,
 };
